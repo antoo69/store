@@ -1,6 +1,7 @@
 import asyncio
 import logging
-from bot import app  # Menggunakan app dari bot.py
+from bot import app  # Ambil instance bot yang sudah dibuat
+import start  # Pastikan handler dari start.py dimuat
 
 # Konfigurasi logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -8,11 +9,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 async def main():
     logging.info("🚀 Bot sedang berjalan...")
     await app.start()
-    
-    # Debugging: pastikan bot aktif
-    me = await app.get_me()
-    logging.info(f"✅ Bot telah aktif sebagai @{me.username}")
-
+    logging.info("✅ Bot telah aktif")
     await asyncio.Event().wait()  # Menjaga bot tetap berjalan
 
 if __name__ == "__main__":
