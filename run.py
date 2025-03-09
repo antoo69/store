@@ -3,6 +3,9 @@ import logging
 from bot import dp, bot
 import handlers  # Pastikan ini ada
 from start import router as start_router  # Tambahkan ini!
+from handlers import router as handlers_router
+
+dp.include_router(handlers_router)
 
 # Konfigurasi logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
