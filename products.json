@@ -1,12 +1,12 @@
 [
     {
-        "Userot": "Userbot Premium",
-        "Harga": "Rp25.000",
-        "description": "Userbot premium dengan 61 menu yang bisa anda pakak"
+        "name": "Userbot Premium",
+        "price": "Rp25.000",
+        "description": "Userbot premium dengan 61 menu yang bisa anda pakai"
     },
     {
-        "Userbot": "Userbot Ultra",
-        "Harga": "Rp30.000",
-        "description": "Userbot ultra ada beberapa fitur manage yang dapat menyediakan untuk mengelola group"
+        "name": "Userbot Ultra",
+        "price": "Rp30.000",
+        "description": "Userbot ultra ada beberapa fitur manage yang dapat menyediakan untuk mengelola"
     }
 ]
