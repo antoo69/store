@@ -4,14 +4,6 @@ from database import get_products, get_product_by_id
 
 router = Router()
 
-@router.message(Command("start"))
-async def start(message: types.Message):
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add("🛍 Produk", "📖 Cara Order", "💰 Harga")
-
-    text = "👋 Selamat datang di Store Bot!\n\nSilakan pilih menu di bawah ini untuk melihat produk dan cara order."
-    await message.answer(text, reply_markup=keyboard)
-
 @router.message(lambda message: message.text == "🛍 Produk")
 async def show_products(message: types.Message):
     products = get_products()
