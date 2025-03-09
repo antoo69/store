@@ -4,5 +4,3 @@ from config import TOKEN
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
-
-dp.include_router(router)  # Masukkan router ke dalam dispatcher
