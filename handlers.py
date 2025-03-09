@@ -1,6 +1,6 @@
 from aiogram import types, Router
 from aiogram.filters import Command
-from config import owner_username  # Mengambil username owner dari config
+from config import OWNER_USERNAME  # Mengambil username owner dari config
 
 router = Router()
 
