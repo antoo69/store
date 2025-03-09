@@ -1,7 +1,7 @@
-from aiogram import types, Router
-from aiogram.filters import Command
+from pyrogram import Client, filters
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
-router = Router()
+app = Client("store_bot")
 
 # Daftar produk langsung dalam kode
 products = [
@@ -12,70 +12,64 @@ products = [
 
 OWNER_USERNAME = "admin_store"  # Ganti dengan username admin
 
-# /start command
-@router.message(Command("start"))
-async def start(message: types.Message):
-    keyboard = types.InlineKeyboardMarkup(inline_keyboard=[
-        [types.InlineKeyboardButton(text="🛍 Produk", callback_data="produk")],
-        [types.InlineKeyboardButton(text="📖 Cara Order", callback_data="cara_order")],
-        [types.InlineKeyboardButton(text="💰 Harga", callback_data="harga")]
+@app.on_message(filters.command("start"))
+def start(client, message):
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🛍 Produk", callback_data="produk")],
+        [InlineKeyboardButton("📖 Cara Order", callback_data="cara_order")],
+        [InlineKeyboardButton("💰 Harga", callback_data="harga")]
     ])
-
+    
     text = "👋 Selamat datang di *Store Bot*\!\n\nSilakan pilih menu di bawah ini untuk melihat produk dan cara order\."
-    await message.answer(text, reply_markup=keyboard, parse_mode="MarkdownV2")
+    message.reply(text, reply_markup=keyboard, parse_mode="markdownV2")
 
-# Callback untuk menampilkan daftar produk
-@router.callback_query(lambda call: call.data == "produk")
-async def show_products(call: types.CallbackQuery):
-    keyboard = types.InlineKeyboardMarkup()
-    for product in products:
-        keyboard.add(types.InlineKeyboardButton(
-            text=product["name"], callback_data=f"product_{product['id']}"
-        ))
-    keyboard.add(types.InlineKeyboardButton("🔙 Kembali ke Menu", callback_data="back_to_menu"))
+@app.on_callback_query(filters.regex("^produk$"))
+def show_products(client, callback_query: CallbackQuery):
+    keyboard = [[InlineKeyboardButton(product["name"], callback_data=f"product_{product['id']}")]
+                for product in products]
+    keyboard.append([InlineKeyboardButton("🔙 Kembali ke Menu", callback_data="back_to_menu")])
+    
+    callback_query.message.edit("🛒 Pilih produk:", reply_markup=InlineKeyboardMarkup(keyboard))
 
-    await call.message.edit_text("🛒 Pilih produk:", reply_markup=keyboard)
-
-# Callback untuk menampilkan detail produk
-@router.callback_query(lambda call: call.data.startswith("product_"))
-async def show_product_details(call: types.CallbackQuery):
-    product_id = call.data.split("_")[1]
+@app.on_callback_query(filters.regex("^product_\d+$"))
+def show_product_details(client, callback_query: CallbackQuery):
+    product_id = callback_query.data.split("_")[1]
     product = next((p for p in products if p["id"] == product_id), None)
-
+    
     if not product:
-        await call.answer("⚠️ Produk tidak ditemukan.", show_alert=True)
+        callback_query.answer("⚠️ Produk tidak ditemukan.", show_alert=True)
         return
-
+    
     text = f"📌 *{product['name']}*\n\n📝 {product['description']}\n💰 Harga: *{product['price']}*"
-    keyboard = types.InlineKeyboardMarkup(inline_keyboard=[
-        [types.InlineKeyboardButton("🛒 Order Sekarang", url=f"https://t.me/{OWNER_USERNAME}?text=Halo,%20saya%20ingin%20order%20{product['name']}")],
-        [types.InlineKeyboardButton("🔙 Kembali", callback_data="produk")]
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🛒 Order Sekarang", url=f"https://t.me/{OWNER_USERNAME}?text=Halo,%20saya%20ingin%20order%20{product['name']}")],
+        [InlineKeyboardButton("🔙 Kembali", callback_data="produk")]
     ])
+    
+    callback_query.message.edit(text, reply_markup=keyboard, parse_mode="markdownV2")
 
-    await call.message.edit_text(text, reply_markup=keyboard, parse_mode="MarkdownV2")
-
-# Callback untuk cara order
-@router.callback_query(lambda call: call.data == "cara_order")
-async def cara_order(call: types.CallbackQuery):
+@app.on_callback_query(filters.regex("^cara_order$"))
+def cara_order(client, callback_query: CallbackQuery):
     text = "📖 *Cara Order:*\n1️⃣ Pilih produk yang ingin dibeli\n2️⃣ Klik tombol 'Order Sekarang'\n3️⃣ Kirim pesan ke admin dan lakukan pembayaran\n4️⃣ Tunggu konfirmasi dan pengiriman"
-    await call.message.edit_text(text, parse_mode="MarkdownV2", reply_markup=types.InlineKeyboardMarkup(
-        inline_keyboard=[[types.InlineKeyboardButton("🔙 Kembali", callback_data="back_to_menu")]]
-    ))
+    callback_query.message.edit(text, parse_mode="markdownV2", reply_markup=InlineKeyboardMarkup([
+        [InlineKeyboardButton("🔙 Kembali", callback_data="back_to_menu")]
+    ]))
 
-# Callback untuk harga
-@router.callback_query(lambda call: call.data == "harga")
-async def harga(call: types.CallbackQuery):
+@app.on_callback_query(filters.regex("^harga$"))
+def harga(client, callback_query: CallbackQuery):
     text = "💰 Harga produk bervariasi\. Hubungi admin untuk info lebih lanjut\."
-    await call.message.edit_text(text, parse_mode="MarkdownV2", reply_markup=types.InlineKeyboardMarkup(
-        inline_keyboard=[[types.InlineKeyboardButton("🔙 Kembali", callback_data="back_to_menu")]]
-    ))
+    callback_query.message.edit(text, parse_mode="markdownV2", reply_markup=InlineKeyboardMarkup([
+        [InlineKeyboardButton("🔙 Kembali", callback_data="back_to_menu")]
+    ]))
 
-# Callback untuk kembali ke menu utama
-@router.callback_query(lambda call: call.data == "back_to_menu")
-async def back_to_menu(call: types.CallbackQuery):
-    keyboard = types.InlineKeyboardMarkup(inline_keyboard=[
-        [types.InlineKeyboardButton(text="🛍 Produk", callback_data="produk")],
-        [types.InlineKeyboardButton(text="📖 Cara Order", callback_data="cara_order")],
-        [types.InlineKeyboardButton(text="💰 Harga", callback_data="harga")]
+@app.on_callback_query(filters.regex("^back_to_menu$"))
+def back_to_menu(client, callback_query: CallbackQuery):
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("🛍 Produk", callback_data="produk")],
+        [InlineKeyboardButton("📖 Cara Order", callback_data="cara_order")],
+        [InlineKeyboardButton("💰 Harga", callback_data="harga")]
     ])
-    await call.message.edit_text("👋 Selamat datang di *Store Bot*\!\n\nSilakan pilih menu di bawah ini untuk melihat produk dan cara order\.", reply_markup=keyboard, parse_mode="MarkdownV2")
+    callback_query.message.edit("👋 Selamat datang di *Store Bot*\!\n\nSilakan pilih menu di bawah ini untuk melihat produk dan cara order\.", 
+                                reply_markup=keyboard, parse_mode="markdownV2")
+
+app.run()
