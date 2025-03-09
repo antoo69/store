@@ -1,0 +1,12 @@
+[
+    {
+        "name": "Produk A",
+        "price": "Rp100.000",
+        "description": "Deskripsi lengkap Produk A"
+    },
+    {
+        "name": "Produk B",
+        "price": "Rp150.000",
+        "description": "Deskripsi lengkap Produk B"
+    }
+]
