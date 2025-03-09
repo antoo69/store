@@ -1,75 +1,58 @@
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from pyrogram.errors import MessageNotModified
+import asyncio
+from store import app
+from pyrogram import filters, enums
+from pyrogram.errors import FloodWait
+
+from config import *
 
 app = Client("store_bot")
 
-# Daftar produk langsung dalam kode
-products = [
-    {"id": "1", "name": "Produk A", "description": "Deskripsi Produk A", "price": "Rp100.000"},
-    {"id": "2", "name": "Produk B", "description": "Deskripsi Produk B", "price": "Rp200.000"},
-    {"id": "3", "name": "Produk C", "description": "Deskripsi Produk C", "price": "Rp300.000"},
-]
+CTYPE = enums.ChatType
 
-OWNER_USERNAME = "admin_store"  # Ganti dengan username admin
+start_keyboard = InlineKeyboardMarkup(
+    [
+        [
+            InlineKeyboardButton("Produk", calback_data="product")
+        ],
+        [
+            InlineKeyboardButton("Cara Order", callback_data="Order"),
+            InlineKeyboardButton("Harga", callback_data="Harga")
+        ],
+        [
+            InlineKeyboardButton("Owner", url="https://t.me/{OWNER_NAME}")
+        ]
+    ]
+)
 
 @app.on_message(filters.command("start"))
-def start(client, message):
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("🛍 Produk", callback_data="produk")],
-        [InlineKeyboardButton("📖 Cara Order", callback_data="cara_order")],
-        [InlineKeyboardButton("💰 Harga", callback_data="harga")]
-    ])
-    
-    text = "👋 Selamat datang di *Store Bot*\!\n\nSilakan pilih menu di bawah ini untuk melihat produk dan cara order\."
-    message.reply(text, reply_markup=keyboard, parse_mode="markdownV2")
+async def start_msg(client, message: Message):
+    user = message.from_user.mention
+    chat_type = message.chat.type
 
-@app.on_callback_query(filters.regex("^produk$"))
-def show_products(client, callback_query: CallbackQuery):
-    keyboard = [[InlineKeyboardButton(product["name"], callback_data=f"product_{product['id']}")]
-                for product in products]
-    keyboard.append([InlineKeyboardButton("🔙 Kembali ke Menu", callback_data="back_to_menu")])
-    
-    callback_query.message.edit("🛒 Pilih produk:", reply_markup=InlineKeyboardMarkup(keyboard))
+    if chat_type == CTYPE.PRIVATE:
+        msg = f"<blockquote> Hi {user} !\n\nSaya bot store, Silahkan pilih produk yang ingin di beli </blockquote>"
 
-@app.on_callback_query(filters.regex("^product_\d+$"))
-def show_product_details(client, callback_query: CallbackQuery):
-    product_id = callback_query.data.split("_")[1]
-    product = next((p for p in products if p["id"] == product_id), None)
-    
-    if not product:
-        callback_query.answer("⚠️ Produk tidak ditemukan.", show_alert=True)
-        return
-    
-    text = f"📌 *{product['name']}*\n\n📝 {product['description']}\n💰 Harga: *{product['price']}*"
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("🛒 Order Sekarang", url=f"https://t.me/{OWNER_USERNAME}?text=Halo,%20saya%20ingin%20order%20{product['name']}")],
-        [InlineKeyboardButton("🔙 Kembali", callback_data="produk")]
-    ])
-    
-    callback_query.message.edit(text, reply_markup=keyboard, parse_mode="markdownV2")
+        try:
+            await message.reply_photo(
+                photo="https://files.catbox.moe/aggvbq.jpg",
+                caption=msg,
+                reply_markup=start_keyboard
+            )
+        except FloodWait as e:
+            await asyncio.sleep(e.value)
+            await message.reply_photo(
+                photo="https://files.catbox.moe/aggvbq.jpg",
+                caption=msg,
+                reply_markup=start_keyboard
+            )
 
-@app.on_callback_query(filters.regex("^cara_order$"))
-def cara_order(client, callback_query: CallbackQuery):
-    text = "📖 *Cara Order:*\n1️⃣ Pilih produk yang ingin dibeli\n2️⃣ Klik tombol 'Order Sekarang'\n3️⃣ Kirim pesan ke admin dan lakukan pembayaran\n4️⃣ Tunggu konfirmasi dan pengiriman"
-    callback_query.message.edit(text, parse_mode="markdownV2", reply_markup=InlineKeyboardMarkup([
-        [InlineKeyboardButton("🔙 Kembali", callback_data="back_to_menu")]
-    ]))
-
-@app.on_callback_query(filters.regex("^harga$"))
-def harga(client, callback_query: CallbackQuery):
-    text = "💰 Harga produk bervariasi\. Hubungi admin untuk info lebih lanjut\."
-    callback_query.message.edit(text, parse_mode="markdownV2", reply_markup=InlineKeyboardMarkup([
-        [InlineKeyboardButton("🔙 Kembali", callback_data="back_to_menu")]
-    ]))
-
-@app.on_callback_query(filters.regex("^back_to_menu$"))
-def back_to_menu(client, callback_query: CallbackQuery):
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("🛍 Produk", callback_data="produk")],
-        [InlineKeyboardButton("📖 Cara Order", callback_data="cara_order")],
-        [InlineKeyboardButton("💰 Harga", callback_data="harga")]
-    ])
-    callback_query.message.edit("👋 Selamat datang di *Store Bot*\!\n\nSilakan pilih menu di bawah ini untuk melihat produk dan cara order\.", 
-                                reply_markup=keyboard, parse_mode="markdownV2")
-
-app.run()
+    elif chat_type in [CTYPE.GROUP, CTYPE.SUPERGROUP]:
+        msg = f"<blockquote>**Hey!**\n\n__Jadikan saya sebagai admin grup, maka grup ini tidak akan ada spam gcast yang mengganggu!__\n\nCreated by {OWNER_NAME}</blockquote>"
+        try:
+            await message.reply(text=msg)
+        except FloodWait as e:
+            await asyncio.sleep(e.value)
+            await message.reply(text=msg)
