@@ -1,6 +1,14 @@
-from aiogram import executor
-from bot import dp
-import start, handlers
+import asyncio
+import logging
+from bot import dp, bot
+import start, handlers  # Pastikan semua handler dimuat
+
+# Konfigurasi logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
+async def main():
+    logging.info("🚀 Bot sedang berjalan...")
+    await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+    asyncio.run(main())
