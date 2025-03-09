@@ -1,64 +1,40 @@
-from aiogram import Router, types, F
-from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram import types, Router
+from aiogram.filters import Command
 from database import get_products, get_product_by_id
-from config import OWNER_USERNAME
 
 router = Router()
 
-@router.message(F.text == "🛍 Produk")
-async def show_products(message: Message):
+@router.message(Command("start"))
+async def start(message: types.Message):
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard.add("🛍 Produk", "📖 Cara Order", "💰 Harga")
+
+    text = "👋 Selamat datang di Store Bot!\n\nSilakan pilih menu di bawah ini untuk melihat produk dan cara order."
+    await message.answer(text, reply_markup=keyboard)
+
+@router.message(lambda message: message.text == "🛍 Produk")
+async def show_products(message: types.Message):
     products = get_products()
-    
-    # Pastikan ada produk dalam database
     if not products:
-        await message.answer("⚠️ Belum ada produk yang tersedia.")
+        await message.answer("⚠️ Tidak ada produk tersedia.")
         return
+    
+    keyboard = types.InlineKeyboardMarkup()
+    for product in products:
+        keyboard.add(types.InlineKeyboardButton(
+            text=product["name"], callback_data=f"product_{product['id']}"
+        ))
 
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=product[1], callback_data=f'product_{product[0]}')] for product in products
-    ])
+    await message.answer("🛒 Pilih produk:", reply_markup=keyboard)
 
-    await message.answer("🔽 Pilih produk yang ingin diorder:", reply_markup=keyboard)
-
-@router.callback_query(F.data.startswith("product_"))
-async def product_detail(call: CallbackQuery):
-    product_id = call.data.split('_')[1]
+@router.callback_query(lambda call: call.data.startswith("product_"))
+async def show_product_detail(call: types.CallbackQuery):
+    product_id = int(call.data.split("_")[1])
     product = get_product_by_id(product_id)
 
-    # Cek apakah produk ada dalam database
-    if not product:
-        await call.answer("❌ Produk tidak ditemukan!", show_alert=True)
-        return
+    if product:
+        text = f"📌 **{product['name']}**\n💰 Harga: {product['price']}\n📖 Deskripsi: {product['description']}"
+        await call.message.answer(text)
+    else:
+        await call.message.answer("⚠️ Produk tidak ditemukan.")
 
-    text = f"📌 *{product[0]}*\n💰 Harga: {product[1]}\n📖 Deskripsi: {product[2]}"
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton("🛒 Order Sekarang", url=f"https://t.me/{OWNER_USERNAME}?text=Saya ingin order {product[0]}")]
-    ])
-
-    await call.message.edit_text(text, parse_mode="Markdown", reply_markup=keyboard)
-
-@router.message(F.text == "📖 Cara Order")
-async def order_guide(message: Message):
-    text = (
-        "🛒 *Cara Order:*\n"
-        "1️⃣ Pilih produk yang ingin dibeli\n"
-        "2️⃣ Klik tombol 'Order Sekarang'\n"
-        "3️⃣ Kirim pesan ke admin dan lakukan pembayaran\n"
-        "4️⃣ Tunggu konfirmasi dan pengiriman"
-    )
-    await message.answer(text, parse_mode="Markdown")
-
-@router.message(F.text == "💰 Harga")
-async def price_list(message: Message):
-    products = get_products()
-
-    # Pastikan ada produk sebelum mengirim daftar harga
-    if not products:
-        await message.answer("⚠️ Belum ada daftar harga yang tersedia.")
-        return
-
-    text = "💰 *Daftar Harga:*\n"
-    for product in products:
-        text += f"- {product[0]}: {product[1]}\n"
-
-    await message.answer(text, parse_mode="Markdown")
