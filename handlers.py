@@ -1,32 +1,32 @@
 from aiogram import types, Router
-from aiogram.filters import Command
 from database import get_products, get_product_by_id
 
 router = Router()
 
-@router.message(lambda message: message.text == "🛍 Produk")
-async def show_products(message: types.Message):
+@router.callback_query(lambda callback: callback.data == "produk")
+async def show_products(callback: types.CallbackQuery):
     products = get_products()
     if not products:
-        await message.answer("⚠️ Tidak ada produk tersedia.")
+        await callback.message.edit_text("⚠️ Tidak ada produk tersedia.")
         return
-    
-    keyboard = types.InlineKeyboardMarkup()
-    for product in products:
-        keyboard.add(types.InlineKeyboardButton(
-            text=product["name"], callback_data=f"product_{product['id']}"
-        ))
 
-    await message.answer("🛒 Pilih produk:", reply_markup=keyboard)
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=[
+        [types.InlineKeyboardButton(text=product["name"], callback_data=f"product_{product['id']}")]
+        for product in products
+    ])
 
-@router.callback_query(lambda call: call.data.startswith("product_"))
-async def show_product_detail(call: types.CallbackQuery):
-    product_id = int(call.data.split("_")[1])
+    await callback.message.edit_text("🛒 Pilih produk:", reply_markup=keyboard)
+
+@router.callback_query(lambda callback: callback.data.startswith("product_"))
+async def show_product_detail(callback: types.CallbackQuery):
+    product_id = int(callback.data.split("_")[1])
     product = get_product_by_id(product_id)
 
     if product:
         text = f"📌 **{product['name']}**\n💰 Harga: {product['price']}\n📖 Deskripsi: {product['description']}"
-        await call.message.answer(text)
+        keyboard = types.InlineKeyboardMarkup(inline_keyboard=[
+            [types.InlineKeyboardButton(text="🔙 Kembali", callback_data="produk")]
+        ])
+        await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="Markdown")
     else:
-        await call.message.answer("⚠️ Produk tidak ditemukan.")
-
+        await callback.message.edit_text("⚠️ Produk tidak ditemukan.")
