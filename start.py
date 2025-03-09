@@ -2,7 +2,7 @@ from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from pyrogram.errors import MessageNotModified
 import asyncio
-from start import app
+import app
 from pyrogram import filters, enums
 from pyrogram.errors import FloodWait
 
