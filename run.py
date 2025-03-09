@@ -1,9 +1,8 @@
 import asyncio
 import logging
 from bot import dp, bot
-import start, handlers  # Pastikan semua handler dimuat
 
-# Konfigurasi logging
+# Konfigurasi logging agar ada output di VPS
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 async def main():
