@@ -1,4 +1,5 @@
 import sqlite3
+import json
 
 def init_db():
     conn = sqlite3.connect("store.db")
@@ -11,10 +12,15 @@ def init_db():
     conn.commit()
     conn.close()
 
-def add_product(name, price, description):
+def add_products_from_json(json_file):
+    with open(json_file, "r", encoding="utf-8") as file:
+        products = json.load(file)
+    
     conn = sqlite3.connect("store.db")
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO products (name, price, description) VALUES (?, ?, ?)", (name, price, description))
+    for product in products:
+        cursor.execute("INSERT INTO products (name, price, description) VALUES (?, ?, ?)",
+                       (product["name"], product["price"], product["description"]))
     conn.commit()
     conn.close()
 
