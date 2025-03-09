@@ -1,6 +1,8 @@
 from aiogram import Bot, Dispatcher
-from aiogram.client.default import DefaultBotProperties
 from config import TOKEN
+from handlers import router  # Tambahkan ini
 
-bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode="HTML"))  # Perbaikan di sini
-dp = Dispatcher()  # Dispatcher tanpa bot
+bot = Bot(token=TOKEN)
+dp = Dispatcher()
+
+dp.include_router(router)  # Masukkan router ke dalam dispatcher
