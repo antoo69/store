@@ -1,5 +1,5 @@
 from pyrogram import Client
-from config import TOKEN
+from config import BOT_TOKEN
 
 # Initialize bot instance
 app = Client(
