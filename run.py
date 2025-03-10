@@ -14,10 +14,12 @@ async def main():
         logging.info("🚀 Starting bot...")
         await app.start()
         logging.info("✅ Bot is active")
-        await asyncio.Event().wait()  # Keep the bot running
+        await app.idle()  # Use app.idle() instead of Event().wait()
     except Exception as e:
         logging.error(f"❌ Error occurred: {str(e)}")
         raise e
+    finally:
+        await app.stop()  # Properly stop the bot when exiting
 
 if __name__ == "__main__":
     asyncio.run(main())
