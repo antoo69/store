@@ -1,19 +1,18 @@
 import asyncio
 import logging
-import sqlite3
-from pyrogram import Client, filters, enums
+from pyrogram import Client
 from config import API_ID, API_HASH, BOT_TOKEN
 from handlers import register_handlers
 from database import init_db
 
-# Configure logging
+# Konfigurasi logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
-# Initialize bot
+# Inisialisasi bot
 app = Client(
     "shop_bot",
     api_id=API_ID,
@@ -23,23 +22,31 @@ app = Client(
 
 async def main():
     try:
-        # Initialize database
+        # Inisialisasi database
         await init_db()
         
-        # Register all handlers
+        # Register semua handlers
         register_handlers(app)
         
-        # Start the bot
+        # Start bot
         await app.start()
-        logger.info("Bot started successfully!")
+        logger.info("Bot started successfully! ✅")
         
-        # Keep the bot running
-        await app.idle()
-        
+        # Menjaga bot tetap berjalan
+        await asyncio.Event().wait()
+
     except Exception as e:
         logger.error(f"Error occurred: {e}")
-    finally:
-        await app.stop()
 
+    finally:
+        logger.info("Shutting down bot...")
+        await app.stop()
+        logger.info("Bot stopped.")
+
+# Menjalankan event loop dengan aman
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except RuntimeError:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(main())
