@@ -1,4 +1,4 @@
-from pyrogram import filters
+from pyrogram import Client, filters
 from pyrogram.types import Message, CallbackQuery
 from database import get_catalog, add_to_cart, get_cart
 from start import START_KEYBOARD  # Pastikan ini ada jika digunakan
