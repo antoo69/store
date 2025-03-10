@@ -4,5 +4,5 @@ from config import BOT_TOKEN
 # Initialize bot instance
 app = Client(
     name="store_bot",
-    bot_token=TOKEN
+    bot_token=BOT_TOKEN
 )
