@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from pyrogram import Client
 from config import API_ID, API_HASH, BOT_TOKEN
@@ -21,28 +20,11 @@ app = Client(
 )
 
 async def main():
-    try:
-        # Inisialisasi database
-        await init_db()
-        
-        # Register semua handlers
-        register_handlers(app)
-        
-        # Start bot
-        await app.start()
-        logger.info("Bot started successfully! ✅")
-        
-        # Menjaga bot tetap berjalan
-        await asyncio.Event().wait()
+    await init_db()  # ✅ Inisialisasi database
+    register_handlers(app)  # ✅ Pastikan handlers terdaftar
+    logger.info("✅ Bot started successfully!")
+    await app.start()
+    await app.idle()  # ✅ Pastikan bot tetap berjalan
 
-    except Exception as e:
-        logger.error(f"Error occurred: {e}")
-
-    finally:
-        logger.info("Shutting down bot...")
-        await app.stop()
-        logger.info("Bot stopped.")
-
-# Menjalankan bot dengan benar
 if __name__ == "__main__":
-    app.run()  # ✅ Ini sudah cukup, tanpa perlu asyncio.run()
+    app.run()  # ✅ FIXED
