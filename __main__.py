@@ -28,12 +28,21 @@ async def main():
         # Register semua handlers
         register_handlers(app)
         
-        # Start bot dengan metode bawaan Pyrogram
-        logger.info("Bot is starting... ✅")
-        app.run()  # Ini akan otomatis menjaga bot tetap berjalan
+        # Start bot
+        await app.start()
+        logger.info("Bot started successfully! ✅")
+        
+        # Menjaga bot tetap berjalan
+        await asyncio.Event().wait()
 
     except Exception as e:
         logger.error(f"Error occurred: {e}")
 
+    finally:
+        logger.info("Shutting down bot...")
+        await app.stop()
+        logger.info("Bot stopped.")
+
+# Menjalankan bot dengan benar
 if __name__ == "__main__":
-    main()  # Tidak perlu `asyncio.run(main())`, karena `app.run()` sudah cukup
+    app.run()  # ✅ Ini sudah cukup, tanpa perlu asyncio.run()
